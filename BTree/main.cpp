@@ -6,11 +6,12 @@ template<class T>
 class Node {
 public:
   T *keys;
+  int m;
   int t;
   Node<T> **C;
   int n;
   bool leaf;
-  Node(int _t, bool _leaf);
+  Node(int _m, bool _leaf);
   void insertNonFull(T k);
   void splitChild(int i, Node<T> *y);
   void traverse();
@@ -20,12 +21,14 @@ public:
 template<class T>
 class BTree {
   Node<T> *root;
+  int m;
   int t;
 
    public:
-  BTree(int _t) {
+  BTree(int _m) {
     root = NULL;
-    t = _t;
+    m = _m;
+    t = ceil(m/2);
   }
 
   void traverse() {
@@ -37,12 +40,12 @@ class BTree {
 };
 
 template<class T>
-Node<T>::Node(int t1, bool leaf1) {
-  t = t1;
+Node<T>::Node(int m1, bool leaf1) {
+  m = m1;
   leaf = leaf1;
-
-  keys = new T[2 * t - 1];
-  C = new Node *[2 * t];
+  t = ceil(m1/2);
+  keys = new T[2*t - 1];
+  C = new Node *[2*t];
 
   n = 0;
 }
@@ -63,12 +66,12 @@ void Node<T>::traverse() {
 template<class T>
 void BTree<T>::insert(T k) {
   if (root == NULL) {
-    root = new Node<T>(t, true);
+    root = new Node<T>(m, true);
     root->keys[0] = k;
     root->n = 1;
   } else {
     if (root->n == 2 * t - 1) {
-      Node<T> *s = new Node<T>(t, false);
+      Node<T> *s = new Node<T>(m, false);
 
       s->C[0] = root;
 
@@ -113,7 +116,7 @@ void Node<T>::insertNonFull(T k) {
 
 template<class T>
 void Node<T>::splitChild(int i, Node<T> *y) {
-  Node<T> *z = new Node<T>(y->t, y->leaf);
+  Node<T> *z = new Node<T>(y->m, y->leaf);
   z->n = t - 1;
 
   for (int j = 0; j < t - 1; j++)
