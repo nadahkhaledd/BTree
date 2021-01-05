@@ -2,186 +2,211 @@
 #include <cmath>
 using namespace std;
 
-template<class T>
-class Node {
-public:
-  T *keys;
-  int m;
-  int t;
-  Node<T> **C;
-  int n;
-  bool leaf;
-  Node(int _m, bool _leaf);
-  void insertNonFull(T k);
-  void splitChild(int i, Node<T> *y);
-  void traverse();
+template<class T, int m>
+struct Node
+{
+    public:
+      T keys[m-1];
+      Node<T, m> *children[m];
+      int mini;
+      int keytall;
+      bool isLeaf;
 
+      Node(bool);
+      void insertb(T);
+      void separete(int , Node<T, m> *);
+      void print();
 };
 
-template<class T>
-class BTree {
-  Node<T> *root;
-  int m;
-  int t;
-
-   public:
-  BTree(int _m) {
-    root = NULL;
-    m = _m;
-    t = ceil(m/2);
-  }
-
-  void traverse() {
-    if (root != NULL)
-      root->traverse();
-  }
-
-  void insert(T k);
-};
-
-template<class T>
-Node<T>::Node(int m1, bool leaf1) {
-  m = m1;
-  leaf = leaf1;
-  t = ceil(m1/2);
-  keys = new T[2*t - 1];
-  C = new Node *[2*t];
-
-  n = 0;
+template<class T, int m>
+Node<T, m>::Node( bool isLeaf1)
+{
+  isLeaf = isLeaf1;
+  mini = ceil(m/2.0);
+  keytall = 0;
 }
 
-template<class T>
-void Node<T>::traverse() {
-  int i;
-  for (i = 0; i < n; i++) {
-      cout << " " << keys[i];
-    if (leaf == false)
-      C[i]->traverse();
-  }
+template<class T, int m>
+void Node<T, m>::insertb(T v)
+{
+  int i = keytall - 1;
 
-  if (leaf == false)
-    C[i]->traverse();
-}
-
-template<class T>
-void BTree<T>::insert(T k) {
-  if (root == NULL) {
-    root = new Node<T>(m, true);
-    root->keys[0] = k;
-    root->n = 1;
-  } else {
-    if (root->n == 2 * t - 1) {
-      Node<T> *s = new Node<T>(m, false);
-
-      s->C[0] = root;
-
-      s->splitChild(0, root);
-
-      int i = 0;
-      if (s->keys[0] < k)
-        i++;
-      s->C[i]->insertNonFull(k);
-
-      root = s;
-    } else
-      root->insertNonFull(k);
-  }
-}
-
-template<class T>
-void Node<T>::insertNonFull(T k) {
-  int i = n - 1;
-
-  if (leaf == true) {
-    while (i >= 0 && keys[i] > k) {
+  if (isLeaf == true)
+  {
+    while (i >= 0 && keys[i] > v)
+    {
       keys[i + 1] = keys[i];
       i--;
     }
+    keys[i + 1] = v;
+    keytall = keytall + 1;
+  }
 
-    keys[i + 1] = k;
-    n = n + 1;
-  } else {
-    while (i >= 0 && keys[i] > k)
+   else
+   {
+    while (i >= 0 && keys[i] > v)
       i--;
 
-    if (C[i + 1]->n == 2 * t - 1) {
-      splitChild(i + 1, C[i + 1]);
-
-      if (keys[i + 1] < k)
+    if (children[i + 1]->keytall == 2 * mini - 1)
+    {
+      separete(i + 1, children[i + 1]);
+      if (keys[i + 1] < v)
         i++;
     }
-    C[i + 1]->insertNonFull(k);
+    children[i + 1]->insertb(v);
   }
 }
 
-template<class T>
-void Node<T>::splitChild(int i, Node<T> *y) {
-  Node<T> *z = new Node<T>(y->m, y->leaf);
-  z->n = t - 1;
+template<class T, int m>
+void Node<T, m>::separete(int i, Node<T, m> *n)
+{
+  Node<T, m> *temp = new Node<T, m>(n->isLeaf);
+  temp->keytall = mini - 1;
 
-  for (int j = 0; j < t - 1; j++)
-    z->keys[j] = y->keys[j + t];
+  for (int j = 0; j < mini - 1; j++)
+    temp->keys[j] = n->keys[j + mini];
 
-  if (y->leaf == false) {
-    for (int j = 0; j < t; j++)
-      z->C[j] = y->C[j + t];
+  if (n->isLeaf == false)
+  {
+    for (int j = 0; j < mini; j++)
+    temp->children[j] = n->children[j + mini];
   }
 
-  y->n = t - 1;
-  for (int j = n; j >= i + 1; j--)
-    C[j + 1] = C[j];
+  n->keytall = mini - 1;
+  for (int j = keytall; j >= i + 1; j--)
+    children[j + 1] = children[j];
 
-  C[i + 1] = z;
+  children[i + 1] = temp;
 
-  for (int j = n - 1; j >= i; j--)
+  for (int j = keytall - 1; j >= i; j--)
     keys[j + 1] = keys[j];
 
-  keys[i] = y->keys[t - 1];
-  n = n + 1;
+  keys[i] = n->keys[mini - 1];
+  keytall = keytall + 1;
 }
 
-int main() {
+template<class T, int m>
+void Node<T, m>::print()
+{
+  int i;
+  for (i = 0; i < keytall; i++)
+  {
 
-    BTree<int> t(3);
-    t.insert(10);
-    t.insert(20);
-    t.insert(5);
-    t.insert(6);
-    t.insert(12);
-    t.insert(30);
-    t.insert(7);
-    t.insert(17);
+    if (isLeaf == false)
+    {
+        cout << "\n";
+       children[i]->print();
+    }
+    cout <<keys[i] << ", ";
+  }
 
-  /*BTree<int> t1(2);
-  t1.insert(1);
-  t1.insert(5);
-  t1.insert(0);
-  t1.insert(4);
-  t1.insert(3);
-  t1.insert(2);*/
+  if (isLeaf == false)
+  {
+      cout << "\n";
+      children[i]->print();
+  }
 
-  /*BTree<char> t(3);
-    t.insert('G');
-    t.insert('I');
-    t.insert('B');
-    t.insert('J');
-    t.insert('C');
-    t.insert('A');
-    t.insert('K');
-    t.insert('E');
-    t.insert('D');
-    t.insert('S');
-    t.insert('T');
-    t.insert('R');
-    t.insert('L');
-    t.insert('F');
-    t.insert('H');
-    t.insert('M');
-    t.insert('N');
-    t.insert('P');
-    t.insert('Q');*/
+}
 
-  cout << "\nThe B-tree is: ";
-  t.traverse();
+template<class T, int m>
+class BTree {
+  Node<T, m> *highkey;
+  int mini;
+
+   public:
+  BTree();
+  void print();
+  void insertb(T v);
+};
+
+template<class T, int m>
+BTree<T, m>::BTree()
+{
+    highkey = NULL;
+    mini = ceil(m/2.0);
+    cout << mini << endl;
+}
+
+template<class T, int m>
+void BTree<T, m>::print()
+{
+    if (highkey != NULL)
+      highkey->print();
+}
+
+template<class T, int m>
+void BTree<T, m>::insertb(T v)
+{
+  if (highkey == NULL)
+  {
+    highkey = new Node<T, m>(true);
+    highkey->keys[0] = v;
+    highkey->keytall = 1;
+  }
+  else
+  {
+    if (highkey->keytall == 2 * mini - 1)
+    {
+      Node<T, m> *temp = new Node<T, m>(false);
+      temp->children[0] = highkey;
+      temp->separete(0, highkey);
+
+      int i = 0;
+      if (temp->keys[0] < v)
+        i++;
+
+      temp->children[i]->insertb(v);
+      highkey = temp;
+    }
+    else
+      highkey->insertb(v);
+  }
+}
+
+
+int main()
+{
+
+    /*BTree<int, 5> t;
+    t.insertb(10);
+    t.insertb(20);
+    t.insertb(5);
+    t.insertb(6);
+    t.insertb(12);
+    t.insertb(30);
+    t.insertb(7);
+    t.insertb(17);*/
+
+  BTree<int, 3> t;
+  t.insertb(1);
+  t.insertb(5);
+  t.insertb(0);
+  t.insertb(4);
+  t.insertb(3);
+  t.insertb(2);
+
+  /*BTree<char, 5> t;
+    t.insertb('G');
+    t.insertb('I');
+    t.insertb('B');
+    t.insertb('J');
+    t.insertb('C');
+    t.insertb('A');
+    t.insertb('K');
+    t.insertb('E');
+    t.insertb('D');
+    t.insertb('S');
+    t.insertb('T');
+    t.insertb('R');
+    t.insertb('L');
+    t.insertb('F');
+    t.insertb('H');
+    t.insertb('M');
+    t.insertb('N');
+    t.insertb('P');
+    t.insertb('Q');*/
+
+  cout << "\nThe B-tree is\n ";
+  t.print();
   cout << "\n";
 }
