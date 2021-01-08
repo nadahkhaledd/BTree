@@ -29,32 +29,34 @@ Node<T, m>::Node( bool isLeaf1)
 template<class T, int m>
 void Node<T, m>::insertb(T v)
 {
-  int i = keytall - 1;
+  int check = keytall - 1;
 
-  if (isLeaf == true)
+  switch(isLeaf)
   {
-    while (i >= 0 && keys[i] > v)
-    {
-      keys[i + 1] = keys[i];
-      i--;
-    }
-    keys[i + 1] = v;
-    keytall = keytall + 1;
+      case true :
+        while(check >= 0 && keys[check] > v)
+        {
+          keys[check + 1] = keys[check];
+          check--;
+        }
+        keys[check + 1] = v;
+        keytall++;
+        break;
+
+      case false:
+        while(check >= 0 && keys[check] > v)
+          check--;
+
+        if(children[check + 1]->keytall == 2 * mini - 1)
+        {
+          separete(check + 1, children[check + 1]);
+          if (keys[check + 1] < v)
+            check++;
+        }
+        children[check + 1]->insertb(v);
+        break;
   }
 
-   else
-   {
-    while (i >= 0 && keys[i] > v)
-      i--;
-
-    if (children[i + 1]->keytall == 2 * mini - 1)
-    {
-      separete(i + 1, children[i + 1]);
-      if (keys[i + 1] < v)
-        i++;
-    }
-    children[i + 1]->insertb(v);
-  }
 }
 
 template<class T, int m>
@@ -63,23 +65,31 @@ void Node<T, m>::separete(int i, Node<T, m> *n)
   Node<T, m> *temp = new Node<T, m>(n->isLeaf);
   temp->keytall = mini - 1;
 
-  for (int j = 0; j < mini - 1; j++)
-    temp->keys[j] = n->keys[j + mini];
-
-  if (n->isLeaf == false)
+  int k = 0;
+  while(k < mini - 1)
   {
-    for (int j = 0; j < mini; j++)
-    temp->children[j] = n->children[j + mini];
+     temp->keys[k] = n->keys[k + mini];
+     k++;
+  }
+  k = 0;
+
+  if(n->isLeaf == false)
+  {
+      while(k < mini)
+      {
+          temp->children[k] = n->children[k + mini];
+          k++;
+      }
   }
 
   n->keytall = mini - 1;
-  for (int j = keytall; j >= i + 1; j--)
-    children[j + 1] = children[j];
+  for ( k = keytall; k >= i + 1; k--)
+    children[k + 1] = children[k];
 
   children[i + 1] = temp;
 
-  for (int j = keytall - 1; j >= i; j--)
-    keys[j + 1] = keys[j];
+  for ( k = keytall - 1; k >= i; k--)
+    keys[k + 1] = keys[k];
 
   keys[i] = n->keys[mini - 1];
   keytall = keytall + 1;
@@ -89,23 +99,18 @@ template<class T, int m>
 void Node<T, m>::print()
 {
   int i;
-  for (i = 0; i < keytall; i++)
+  while(i < keytall)
   {
 
     if (isLeaf == false)
-    {
-        cout << "\n";
        children[i]->print();
-    }
-    cout <<keys[i] << ", ";
+
+    cout <<keys[i] << " ";
+    i++;
   }
 
   if (isLeaf == false)
-  {
-      cout << "\n";
       children[i]->print();
-  }
-
 }
 
 template<class T, int m>
@@ -122,22 +127,21 @@ class BTree {
 template<class T, int m>
 BTree<T, m>::BTree()
 {
-    highkey = NULL;
+    highkey = nullptr;
     mini = ceil(m/2.0);
-    cout << mini << endl;
 }
 
 template<class T, int m>
 void BTree<T, m>::print()
 {
-    if (highkey != NULL)
+    if (highkey != nullptr)
       highkey->print();
 }
 
 template<class T, int m>
 void BTree<T, m>::insertb(T v)
 {
-  if (highkey == NULL)
+  if(highkey == nullptr)
   {
     highkey = new Node<T, m>(true);
     highkey->keys[0] = v;
@@ -145,7 +149,7 @@ void BTree<T, m>::insertb(T v)
   }
   else
   {
-    if (highkey->keytall == 2 * mini - 1)
+    if(highkey->keytall == 2 * mini - 1)
     {
       Node<T, m> *temp = new Node<T, m>(false);
       temp->children[0] = highkey;
@@ -167,25 +171,19 @@ void BTree<T, m>::insertb(T v)
 int main()
 {
 
-    /*BTree<int, 5> t;
-    t.insertb(10);
-    t.insertb(20);
-    t.insertb(5);
-    t.insertb(6);
-    t.insertb(12);
-    t.insertb(30);
-    t.insertb(7);
-    t.insertb(17);*/
+  BTree<int, 3> t1;
+  t1.insertb(1);
+  t1.insertb(5);
+  t1.insertb(0);
+  t1.insertb(4);
+  t1.insertb(3);
+  t1.insertb(2);
 
-  BTree<int, 3> t;
-  t.insertb(1);
-  t.insertb(5);
-  t.insertb(0);
-  t.insertb(4);
-  t.insertb(3);
-  t.insertb(2);
+  cout << "\n ";
+  t1.print();
+  cout << "\n";
 
-  /*BTree<char, 5> t;
+  BTree<char, 5> t;
     t.insertb('G');
     t.insertb('I');
     t.insertb('B');
@@ -204,9 +202,9 @@ int main()
     t.insertb('M');
     t.insertb('N');
     t.insertb('P');
-    t.insertb('Q');*/
+    t.insertb('Q');
 
-  cout << "\nThe B-tree is\n ";
+  cout << "\n ";
   t.print();
   cout << "\n";
 }
